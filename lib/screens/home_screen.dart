@@ -4,6 +4,9 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../services/auth_service.dart';
+import '../auth/login_screen.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -63,6 +66,7 @@ Future<void> submitInquiry() async {
         'Content-Type': 'application/json',
       },
       body: jsonEncode({
+        'firebase_uid': AuthService().getCurrentUser()?.uid ?? '',
         'subject': subjectController.text,
         'message': messageController.text,
       }),
@@ -96,6 +100,20 @@ Widget build(BuildContext context) {
     appBar: AppBar(
       elevation: 0,
       backgroundColor: Colors.white,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.logout, color: Colors.black),
+          onPressed: () async {
+            await AuthService().logout();
+            if (!context.mounted) return;
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginScreen()),
+              (route) => false,
+            );
+          },
+        ),
+      ],
       title: Row(
         children: [
           Container(
@@ -411,6 +429,40 @@ Widget build(BuildContext context) {
                             ),
                           ),
                         ),
+
+                        if (inquiry['admin_response'] != null && inquiry['admin_response'].toString().isNotEmpty)
+                          Container(
+                            margin: const EdgeInsets.only(top: 12),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.blue.shade200),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.support_agent, size: 16, color: Colors.blue.shade700),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Agent Response',
+                                      style: TextStyle(
+                                        color: Colors.blue.shade700,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  inquiry['admin_response'],
+                                  style: const TextStyle(color: Colors.black87),
+                                ),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
                   );

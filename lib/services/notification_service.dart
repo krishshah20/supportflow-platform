@@ -25,18 +25,40 @@ class NotificationService {
         ),
       );
 
+      final AndroidNotificationChannel channel = const AndroidNotificationChannel(
+        'inquiry_channel_new',
+        'Inquiry Notifications',
+        description: 'Notifications for new inquiries',
+        importance: Importance.max,
+        playSound: true,
+      );
+
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
+
       await _localNotifications
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>()
           ?.requestNotificationsPermission();
 
-      final token = await messaging.getToken();
-      await messaging.subscribeToTopic('all_users');
+      String? token;
+      try {
+        token = await messaging.getToken();
+      } catch (e) {
+        log('FCM getToken failed: $e, attempting to clear cache and retry...');
+        try {
+          await messaging.deleteToken();
+          token = await messaging.getToken();
+        } catch (retryError) {
+          log('FCM retry failed: $retryError');
+        }
+      }
 
       log('======================');
       log('FCM TOKEN');
-      log(token ?? 'Token is null');
-      log('Subscribed to all_users topic');
+      log(token ?? 'Token is null (FCM Registration failed)');
       log('======================');
 
       FirebaseMessaging.onMessage.listen(

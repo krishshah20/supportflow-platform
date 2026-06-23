@@ -17,7 +17,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.notification_demo"
-        minSdk = flutter.minSdkVersion                          // FIXED: hardcoded, not flutter.minSdkVersion
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
